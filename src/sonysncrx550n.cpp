@@ -8,26 +8,11 @@
 // stl library
 #include <iostream>
 
-// int SonyControl::i=0;
-// char SonyControl::hexVal[]={'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
-// QString SonyControl::pan="";
-// QString SonyControl::tilt="";
-
-// TO CHECK -------------------------------------------------
-// IT WOULD BE NICE TO CONSTANTLY TRACK THE CAMERA POSITION
-// HAVING VARIABLES FOR PAN, TILT, ZOOM, FOCUS WHICH WILL BE
-// CHANGED AT EACH RELATIVE/ABSOLUTE MOTION
-// IT WILL BE EASIER FOR STORING THE IMAGE AND KEEPING A LOG
-// FILE UP TO DATE
-// CHECKED -------------------------------------------------- 
-
 SonySNCRX550N::SonySNCRX550N(const QString& _ip_address, QObject *parent) : 
   QObject(parent) {
   // Set up the ip address
   set_ip_address(_ip_address);
-  // CamAddress = "192.168.0.100";
-  // URLCommand = "http://"+CamAddress+"/command/ptzf.cgi?";
-  // URLDownload = "http://"+CamAddress+"/oneshotimage.jpg";
+  absolute_motion(0,0,24);
 }
 
 // Set the IP address
@@ -39,6 +24,9 @@ void SonySNCRX550N::set_ip_address(const QString& _ip_address) {
   url_request_one_shot.setUrl("http://" + ip_address + "/oneshotimage.jpg");
   // Initialise the network access manager
   net_acc_manager = new QNetworkAccessManager(this);
+  // Connect some signal-slot in order to be able to save the data
+  // Catch the signal when the data are ready to be stored
+  connect(net_acc_manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(net_data_transmitted(QNetworkReply*)));
 }
 
 // Relative motion - The different parameters are given as:
@@ -71,16 +59,17 @@ void SonySNCRX550N::absolute_motion(const long _p_angle, const long _t_angle, co
 
 void SonySNCRX550N::network_request(const QUrl& _url) {
   // Get the reply for the url request
-  net_reply_vector.push_back(net_acc_manager->get(QNetworkRequest(_url)));
-  // Connect some signal-slot in order to be able to save the data
-  // Catch the signal when the data are ready to be stored
-  QObject::connect((*net_reply_vector.end()), SIGNAL(finished()), this, SLOT(net_data_transmitted(net_reply_vector.end())));
+  net_acc_manager->get(QNetworkRequest(_url));
+}
+
+void SonySNCRX550N::grab_image() {
+  network_request(url_request_one_shot);
 }
 
 // slot to take decision about the transmitted data
-void SonySNCRX550N::net_data_transmitted(std::vector<QNetworkReply*>::iterator it) {
+void SonySNCRX550N::net_data_transmitted(QNetworkReply* _p_net_reply) {
   // If the request was to get an image
-  if ((*it)->url() == url_request_one_shot) {
+  if (_p_net_reply->url().toString().contains( url_request_one_shot.toString())) {
     // TODO - PROBABLY GET PAN TILT ZOOM FOCUS PARAMETER TO PUT INSIDE THE FILENAME
     // Get the current time in order to save the image
     QDateTime current_time = QDateTime::currentDateTimeUtc();
@@ -91,19 +80,19 @@ void SonySNCRX550N::net_data_transmitted(std::vector<QNetworkReply*>::iterator i
       return;
     }
     // Save the image
-    file.write((*it)->readAll());
+    file.write(_p_net_reply->readAll());
     // Close the file
     file.close();
   }
-  else if ((*it)->url() == url_request_rel_command) {
+  else if (_p_net_reply->url().toString().contains(url_request_rel_command.toString())) {
     // Remove the url query from the list
     url_request_rel_command.removeQueryItem("relativepantilt");
   }
-  else if ((*it)->url() == url_request_abs_command) {
+  else if (_p_net_reply->url().toString().contains(url_request_abs_command.toString())) {
     // Remove the url query from the list
     url_request_abs_command.removeQueryItem("absolutepantilt");
   }
-  (*it)->deleteLater();
+  _p_net_reply->deleteLater();
 }
 
 // void SonyControl::startRequests(QUrl _url)

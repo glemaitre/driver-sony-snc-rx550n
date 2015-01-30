@@ -36,9 +36,13 @@ public:
   
   // Absolute motion - The different parameters are given as:
   // _p_angle: pan position  | -180 to 180
-  // _t_angle: tilt position |  -45 to 45
+  // _t_angle: tilt position |  -48 to 48
   // speed: engine speed     |    1 to 24
   void absolute_motion(const long _p_angle = 0, const long _t_angle = 0, const long speed = 0);
+
+  /* Camera management */
+  // Private function to store an image
+  void grab_image();
 
   /* PRIVATE MEMBERS AND FUNCTIONS */
 
@@ -49,9 +53,6 @@ private:
   QString ip_address;
   // Private member for network access manager
   QNetworkAccessManager* net_acc_manager;
-  // Private member for the network reply
-  QNetworkReply* net_reply;
-  std::vector<QNetworkReply*> net_reply_vector;
 
   // Private function in order to make network requests
   void network_request(const QUrl& _url);
@@ -61,66 +62,73 @@ private:
   QUrl url_request_abs_command;
   QUrl url_request_rel_command;
 
+  // Private member for the position of the camera
+  double pan_pos;
+  double tilt_pos;
+  long zoom_opt;
+  long zoom_dig;
+  double focus;
+
   // Private parameter regarding the panning
   static const long number_panning_steps = 16320;
-  static const long total_panning_angle = 360;
-  static const long min_panning_rel = -360;
-  static const long max_panning_rel = 360;
-  static const long min_panning_abs = -180;
-  static const long max_panning_abs = 180;
+  static constexpr double total_panning_angle = 360.0;
+  static constexpr double min_panning_rel = -360.0;
+  static constexpr double max_panning_rel = 360.0;
+  static constexpr double min_panning_abs = -180.0;
+  static constexpr double max_panning_abs = 180.0;
 
   // RELATIVE CASE - Private function to convert an panning angle in degrees to hexadecimal
-  inline QString convert_panning_rel_to_hex(const long _p_angle) {
+  inline QString convert_panning_rel_to_hex(const double _p_angle) {
     if ((_p_angle < min_panning_rel)||(_p_angle > max_panning_rel)) {
       std::cout << "The pan angle requested is to small or to large!!! The camera will not move !!!" << std::endl;
       return QString::number(0, 16).toUpper();
     }
-    return QString::number(_p_angle * number_panning_steps / total_panning_angle, 16).toUpper();
+    return QString::number(static_cast<long> (std::round(_p_angle * static_cast<double> (number_panning_steps) / total_panning_angle)), 16).toUpper();
   }
 
   // ABSOLUTE CASE - Private function to convert an panning angle in degrees to hexadecimal
-  inline QString convert_panning_abs_to_hex(const long _p_angle) {
+  inline QString convert_panning_abs_to_hex(const double _p_angle) {
     if ((_p_angle < min_panning_abs)||(_p_angle > max_panning_abs)) {
       std::cout << "The pan angle requested is to small or to large!!! The camera will not move !!!" << std::endl;
       return QString::number(0, 16).toUpper();
     }
-    return QString::number(_p_angle * number_panning_steps / total_panning_angle, 16).toUpper();
+    return QString::number(static_cast<long> (std::round(_p_angle * static_cast<double> (number_panning_steps) / total_panning_angle)), 16).toUpper();
   }
 
   // Private parameter regarding the tilting
   //FROM THE DOCUMENTATION IT SEEMS THAT THE ENGINE CANNOT REACH SOME REMAINING 6 DEGREES
   static const long number_tilt_steps = 4352;
-  static const long total_tilt_angle = 96;
-  static const long min_tilt_rel = -90;
-  static const long max_tilt_rel = 90;
-  static const long min_tilt_abs = -45;
-  static const long max_tilt_abs = 45;
+  static constexpr double total_tilt_angle = 96.0;
+  static constexpr double min_tilt_rel = -96.0;
+  static constexpr double max_tilt_rel = 96.0;
+  static constexpr double min_tilt_abs = -48.0;
+  static constexpr double max_tilt_abs = 48.0;
 
   // RELATIVE CASE - Private function to convert an panning angle in degrees to hexadecimal
-  inline QString convert_tilt_rel_to_hex(const long _t_angle) {
+  inline QString convert_tilt_rel_to_hex(const double _t_angle) {
     if ((_t_angle < min_tilt_rel)||(_t_angle > max_tilt_rel)) {
       std::cout << "The pan angle requested is to small or to large!!! The camera will not move !!!" << std::endl;
       return QString::number(0, 16).toUpper();
     }
-    return QString::number(_t_angle * number_tilt_steps / total_tilt_angle, 16).toUpper();
+    return QString::number(static_cast<long> (std::round(_t_angle * static_cast<double> (number_tilt_steps) / total_tilt_angle)), 16).toUpper();
   }
 
   // ABSOLUTE CASE - Private function to convert an tilt angle in degrees to hexadecimal
-  inline QString convert_tilt_abs_to_hex(const long _t_angle) {
+  inline QString convert_tilt_abs_to_hex(const double _t_angle) {
     if ((_t_angle < min_tilt_abs)||(_t_angle > max_tilt_abs)) {
       std::cout << "The pan angle requested is to small or to large!!! The camera will not move !!!" << std::endl;
       return QString::number(0, 16).toUpper();
     }
-    return QString::number(_t_angle * number_tilt_steps / total_tilt_angle, 16).toUpper();
+    return QString::number(static_cast<long> (std::round(_t_angle * static_cast<double> (number_tilt_steps) / total_tilt_angle)), 16).toUpper();
   }
 
   /* Camera management */
   // Private member regarding camera shot
   QUrl url_request_one_shot;
 
-private slots:
+public slots:
   // slot to take decision about the transmitted data
-  void net_data_transmitted(std::vector<QNetworkReply*>::iterator it);
+  void net_data_transmitted(QNetworkReply* _p_net_reply);
 
 
 
