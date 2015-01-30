@@ -3,14 +3,15 @@
 
 // stl library
 #include <iostream>
+#include <vector>
+#include <iterator>
 
 // qt library
-//#include <QtCore>
 #include <QObject>
 #include <QString>
-//#include <QtNetwork>
 #include <QUrl>
-
+#include <QNetworkReply>
+#include <QNetworkAccessManager>
 
 class SonySNCRX550N : public QObject
 {
@@ -46,10 +47,20 @@ private:
   /* Network management */
   // Private member regarding network information of the camera
   QString ip_address;
+  // Private member for network access manager
+  QNetworkAccessManager* net_acc_manager;
+  // Private member for the network reply
+  QNetworkReply* net_reply;
+  std::vector<QNetworkReply*> net_reply_vector;
+
+  // Private function in order to make network requests
+  void network_request(const QUrl& _url);
 
   /* Command management */
   // Private member regarding engine command
-  QUrl url_request_command;
+  QUrl url_request_abs_command;
+  QUrl url_request_rel_command;
+
   // Private parameter regarding the panning
   static const long number_panning_steps = 16320;
   static const long total_panning_angle = 360;
@@ -107,6 +118,12 @@ private:
   // Private member regarding camera shot
   QUrl url_request_one_shot;
 
+private slots:
+  // slot to take decision about the transmitted data
+  void net_data_transmitted(std::vector<QNetworkReply*>::iterator it);
+
+
+
   // Relative motion
   
 
@@ -145,9 +162,9 @@ private:
   //     //delay
   //     void delay(int _delay);
 
-signals:
+// signals:
 
-public slots:
+// public slots:
        // void downloadFile(QString fname);
        // void httpReadyRead();
        // void httpFinished();
