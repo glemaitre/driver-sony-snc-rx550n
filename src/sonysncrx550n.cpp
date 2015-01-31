@@ -160,6 +160,7 @@ void SonySNCRX550N::net_data_transmitted(QNetworkReply* _p_net_reply) {
     }
     // Save the image
     file.write(_p_net_reply->readAll());
+    std::cout << "Image saved on the disk!!!!!!" << std::endl;
     // Close the file
     file.close();
   }
@@ -179,6 +180,7 @@ void SonySNCRX550N::net_data_transmitted(QNetworkReply* _p_net_reply) {
       tilt_pos = max_tilt_abs;
     else if (tilt_pos < min_tilt_abs)
       tilt_pos = min_tilt_abs;
+    std::cout << "Position moved relatively" << std::endl;
     // Remove the url query from the list
     url_request_command.removeQueryItem("relativepantilt");
   }
@@ -192,6 +194,7 @@ void SonySNCRX550N::net_data_transmitted(QNetworkReply* _p_net_reply) {
     bool ok;
     // Update the position
     speed = static_cast<long> (params_split.at(2).toInt(&ok, 10));
+    std::cout << "Position moved absolutely" << std::endl;
     // Remove the url query from the list
     url_request_command.removeQueryItem("absolutepantilt");
   }
@@ -199,12 +202,14 @@ void SonySNCRX550N::net_data_transmitted(QNetworkReply* _p_net_reply) {
     // Convert hexadecimal to key
     auto key_zoom = zoom_position_hex_to_key.find(url_request_command.queryItemValue("absolutezoom"));
     zoom_pos = key_zoom->second;
+    std::cout << "Absolute zoom changed" << std::endl;
     // Remove the url query from the list
     url_request_command.removeQueryItem("absolutezoom");
   }
   else if (_p_net_reply->url().toString().contains("absolutefocus")) {
     auto key_focus = focus_position_hex_to_key.find(url_request_command.queryItemValue("absolutefocus"));
     focus_pos = key_focus->second;
+    std::cout << "Absolute focus changed" << std::endl;
     // Remove the url query from the list
     url_request_command.removeQueryItem("absolutefocus");
   }
