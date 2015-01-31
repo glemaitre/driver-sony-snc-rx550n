@@ -20,8 +20,6 @@ This repository offers the following classes:
 
 * Sony SNC-RX550N: this class allows to manage the Sony SNC-RX550N camera.
 
-* TODO - This class offers some useful function to create spherical and blabla imaging.
-
 ## Compilation
 
 * Create a bin directory

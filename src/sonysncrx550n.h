@@ -61,6 +61,13 @@ public:
   // speed: engine speed     |    1 to 24
   void absolute_motion(const long _p_angle = 0, const long _t_angle = 0, const long speed = 0);
 
+  // Function to get the position of the camera
+  inline void get_camera_positions(double& _pan_pos, double& _tilt_pos, QString& _zoom_pos, QString& _focus_pos) const { _pan_pos = pan_pos; _tilt_pos = tilt_pos; _zoom_pos = zoom_pos; _focus_pos = focus_pos; }
+  inline double get_pan_position() const { return pan_pos; }
+  inline double get_tilt_position() const { return tilt_pos; }
+  inline QString get_zoom_position() const { return zoom_pos; }
+  inline QString get_focus_position() const { return focus_pos; }
+
   /* Camera management */
   // Private function in order to control the optical zoom
   void absolute_zoom(const QString& _zoom_position = "oz-1");
@@ -71,12 +78,9 @@ public:
   // Private function to store an image
   void grab_image();
 
-  // Function to get the position of the camera
-  inline void get_camera_positions(double& _pan_pos, double& _tilt_pos, QString& _zoom_pos, QString& _focus_pos) const { _pan_pos = pan_pos; _tilt_pos = tilt_pos; _zoom_pos = zoom_pos; _focus_pos = focus_pos; }
-  inline double get_pan_position() const { return pan_pos; }
-  inline double get_tilt_position() const { return tilt_pos; }
-  inline QString get_zoom_position() const { return zoom_pos; }
-  inline QString get_focus_position() const { return focus_pos; }
+  /* Computer Vision */
+  // Private function for spherical acquisition - TODO IMPLEMENT ZOOM AND FOCUS
+  void spherical_acquisition(const long step_pan = 18, const long step_tilt = 8, const long speed = 24);//, const QString& _zoom, const QString& _focus);
 
   /* PRIVATE MEMBERS AND FUNCTIONS */
 

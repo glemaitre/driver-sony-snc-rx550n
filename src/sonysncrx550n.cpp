@@ -117,6 +117,29 @@ void SonySNCRX550N::grab_image() {
   network_request(url_request_one_shot);
 }
 
+// Private function for spherical acquisition - TODO IMPLEMENT ZOOM AND FOCUS
+void SonySNCRX550N::spherical_acquisition(const long step_pan, const long step_tilt, const long speed) {//, const QString& _zoom, const QString& _focus);
+  // Move to the initial position
+  double init_pan_angle = -180.0;
+  double init_tilt_angle = -48.0;
+  absolute_motion(init_pan_angle, init_tilt_angle, speed);
+  grab_image();
+  // Compute the increment for the pan and tilt
+  double angle_pan_inc = total_panning_angle / step_pan;
+  double angle_tilt_inc = total_tilt_angle / step_tilt;
+
+  for (double tilt_angle = init_tilt_angle; tilt_angle <= total_tilt_angle; tilt_angle += angle_tilt_inc) {
+    for (double pan_angle = init_pan_angle; pan_angle <= total_panning_angle; pan_angle += angle_pan_inc) {
+      // Absolute motion
+      absolute_motion(pan_angle, tilt_angle, speed);
+      // Acquired an image
+      grab_image();
+    }
+  }
+
+  // Move back to the zero position
+  absolute_motion(0.0, 0.0, speed);
+}
 void SonySNCRX550N::network_request(const QUrl& _url) {
   // Get the reply for the url request
   net_acc_manager->get(QNetworkRequest(_url));
@@ -126,10 +149,10 @@ void SonySNCRX550N::network_request(const QUrl& _url) {
 void SonySNCRX550N::net_data_transmitted(QNetworkReply* _p_net_reply) {
   // If the request was to get an image
   if (_p_net_reply->url().toString().contains( url_request_one_shot.toString())) {
-    // TODO - PROBABLY GET PAN TILT ZOOM FOCUS PARAMETER TO PUT INSIDE THE FILENAME
     // Get the current time in order to save the image
     QDateTime current_time = QDateTime::currentDateTimeUtc();
-    QString filename = QDateTime::currentDateTimeUtc().toString(Qt::ISODate) + ".jpg";
+    // Define the filename - pan position + tilt position + zoom position + focus position + time_of_acquisition
+    QString filename = QString::number(pan_pos) + "-" + QString::number(tilt_pos) + "-" + zoom_pos + "-" + focus_pos + "-" + QDateTime::currentDateTimeUtc().toString(Qt::ISODate) + ".jpg";
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly)) {
       std::cout << "Error while writting the image file" << std::endl;
