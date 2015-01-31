@@ -1,7 +1,7 @@
 QT       += core network
 QT       -= gui
 
-TARGET = untitled
+TARGET = driver
 CONFIG   += console
 CONFIG   -= app_bundle
 
