@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 
   SonySNCRX550N sony_cam("192.168.0.100");
 
-  sony_cam.spherical_acquisition(12, 8, 24, "oz-1", "f-inf", "./images");
+  sony_cam.spherical_acquisition(12, 8, 24, "oz-1", "f-inf", "./images/");
 
   return a.exec();
 }

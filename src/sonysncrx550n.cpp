@@ -125,7 +125,7 @@ void SonySNCRX550N::grab_image() {
 // Private function for spherical acquisition
 void SonySNCRX550N::spherical_acquisition(const long step_pan, const long step_tilt, const long speed, const QString& _zoom, const QString& _focus, const QString& _directory_storage) {
   // Set the directory for a full acquisition
-  directory_storage = QDir(_directory_storage + "./sphere-" + QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
+  directory_storage = QDir(_directory_storage + "sphere-" + QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
   if (!directory_storage.exists())
     directory_storage.mkpath(".");
   // Move to the initial position
