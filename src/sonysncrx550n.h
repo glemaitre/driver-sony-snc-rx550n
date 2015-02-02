@@ -33,6 +33,8 @@
 #include <QUrl>
 #include <QNetworkReply>
 #include <QNetworkAccessManager>
+#include <QEventLoop>
+#include <QDir>
 
 class SonySNCRX550N : public QObject
 {
@@ -53,13 +55,13 @@ public:
   // _p_angle: pan position  | -360 to 360
   // _t_angle: tilt position |  -96 to 96
   // speed: engine speed     |    1 to 24
-  void relative_motion(const long _p_angle = 0, const long _t_angle = 0, const long speed = 0);
+  void relative_motion(const long _p_angle = 0, const long _t_angle = 0, const long _speed = 0);
   
   // Absolute motion - The different parameters are given as:
   // _p_angle: pan position  | -180 to 180
   // _t_angle: tilt position |  -48 to 48
   // speed: engine speed     |    1 to 24
-  void absolute_motion(const long _p_angle = 0, const long _t_angle = 0, const long speed = 0);
+  void absolute_motion(const long _p_angle = 0, const long _t_angle = 0, const long _speed = 0);
 
   // Function to get the position of the camera
   inline void get_camera_positions(double& _pan_pos, double& _tilt_pos, QString& _zoom_pos, QString& _focus_pos) const { _pan_pos = pan_pos; _tilt_pos = tilt_pos; _zoom_pos = zoom_pos; _focus_pos = focus_pos; }
@@ -80,7 +82,7 @@ public:
 
   /* Computer Vision */
   // Private function for spherical acquisition - TODO IMPLEMENT ZOOM AND FOCUS
-  void spherical_acquisition(const long step_pan = 18, const long step_tilt = 8, const long speed = 24);//, const QString& _zoom, const QString& _focus);
+  void spherical_acquisition(const long step_pan = 18, const long step_tilt = 8, const long speed = 24, const QString& _zoom = "oz-1", const QString& _focus = "f-inf", const QString& _directory_storage = "./");
 
   /* PRIVATE MEMBERS AND FUNCTIONS */
 
@@ -91,6 +93,7 @@ private:
   QString ip_address;
   // Private member for network access manager
   QNetworkAccessManager* net_acc_manager;
+  QEventLoop loop;
 
   // Private function in order to make network requests
   void network_request(const QUrl& _url);
@@ -123,9 +126,17 @@ private:
   inline QString convert_panning_rel_to_hex(const double _p_angle) const {
     if ((_p_angle < min_panning_rel)||(_p_angle > max_panning_rel)) {
       std::cout << "The pan angle requested is to small or to large!!! The camera will not move !!!" << std::endl;
-      return QString::number(0, 16).toUpper();
-    }
-    return QString::number(static_cast<long> (std::round(_p_angle * static_cast<double> (number_panning_steps) / total_panning_angle)), 16).toUpper();
+      QString tmp = QString::number(0, 16).toUpper();      
+      if (tmp.length() > 4)
+	return tmp.mid(tmp.length() - 4, 4);
+      else
+	return tmp;
+    }    
+    QString tmp = QString::number(static_cast<long> (std::round(_p_angle * static_cast<double> (number_panning_steps) / total_panning_angle)), 16).toUpper();
+    if (tmp.length() > 4)
+      return tmp.mid(tmp.length() - 4, 4);
+    else
+      return tmp;
   }
 
   // ABSOLUTE CASE - PAN
@@ -134,17 +145,26 @@ private:
     if ((_p_angle < min_panning_abs)||(_p_angle > max_panning_abs)) {
       std::cout << "The pan angle requested is to small or to large!!! The camera will not move !!!" << std::endl;
       return QString::number(0, 16).toUpper();
+      QString tmp = QString::number(0, 16).toUpper();      
+      if (tmp.length() > 4)
+	return tmp.mid(tmp.length() - 4, 4);
+      else
+	return tmp;
     }
-    return QString::number(static_cast<long> (std::round(_p_angle * static_cast<double> (number_panning_steps) / total_panning_angle)), 16).toUpper();
+    QString tmp = QString::number(static_cast<long> (std::round(_p_angle * static_cast<double> (number_panning_steps) / total_panning_angle)), 16).toUpper();
+    if (tmp.length() > 4) {
+      return tmp.mid(tmp.length() - 4, 4);;
+    }
+    else
+      return tmp;
   }
   
   // Hexadecimal to degree
   inline double convert_panning_to_deg(const QString _p_hexa) const {
     // Convert hexadecimal to decimal steps
-    bool ok;
-    int dec_steps = _p_hexa.toInt(&ok, 16);
+    short int dec_steps = std::stoul(_p_hexa.toStdString(), nullptr, 16);
     // Convert the steps to degree
-    return dec_steps * total_panning_angle / static_cast<double> (number_panning_steps);
+    return (static_cast<double> (dec_steps) * total_panning_angle / static_cast<double> (number_panning_steps));
   }
 
   // Private parameter regarding the tilting
@@ -160,9 +180,17 @@ private:
   inline QString convert_tilt_rel_to_hex(const double _t_angle) const {
     if ((_t_angle < min_tilt_rel)||(_t_angle > max_tilt_rel)) {
       std::cout << "The pan angle requested is to small or to large!!! The camera will not move !!!" << std::endl;
-      return QString::number(0, 16).toUpper();
+      QString tmp = QString::number(0, 16).toUpper();      
+      if (tmp.length() > 4)
+	return tmp.mid(tmp.length() - 4, 4);
+      else
+	return tmp;
     }
-    return QString::number(static_cast<long> (std::round(_t_angle * static_cast<double> (number_tilt_steps) / total_tilt_angle)), 16).toUpper();
+    QString tmp = QString::number(static_cast<long> (std::round(_t_angle * static_cast<double> (number_tilt_steps) / total_tilt_angle)), 16).toUpper();
+    if (tmp.length() > 4)
+      return tmp.mid(tmp.length() - 4, 4);
+    else
+      return tmp;
   }
 
   // ABSOLUTE CASE - TILT
@@ -170,23 +198,31 @@ private:
   inline QString convert_tilt_abs_to_hex(const double _t_angle) const {
     if ((_t_angle < min_tilt_abs)||(_t_angle > max_tilt_abs)) {
       std::cout << "The pan angle requested is to small or to large!!! The camera will not move !!!" << std::endl;
-      return QString::number(0, 16).toUpper();
+      QString tmp = QString::number(0, 16).toUpper();      
+      if (tmp.length() > 4)
+	return tmp.mid(tmp.length() - 4, 4);
+      else
+	return tmp;
     }
-    return QString::number(static_cast<long> (std::round(_t_angle * static_cast<double> (number_tilt_steps) / total_tilt_angle)), 16).toUpper();
+    QString tmp = QString::number(static_cast<long> (std::round(_t_angle * static_cast<double> (number_tilt_steps) / total_tilt_angle)), 16).toUpper();
+    if (tmp.length() > 4)
+      return tmp.mid(tmp.length() - 4, 4);
+    else
+      return tmp;
   }
 
   // Hexadecimal to degree
   inline double convert_tilt_to_deg(const QString _p_hexa) const {
     // Convert hexadecimal to decimal steps
-    bool ok;
-    int dec_steps = _p_hexa.toInt(&ok, 16);
+    short int dec_steps = std::stoul(_p_hexa.toStdString(), nullptr, 16);
     // Convert the steps to degree
-    return dec_steps * total_tilt_angle / static_cast<double> (number_tilt_steps);
+    return (static_cast<double> (dec_steps) * total_tilt_angle / static_cast<double> (number_tilt_steps));
   }
 
   /* Camera management */
   // Private member regarding camera shot
   QUrl url_request_one_shot;
+  QDir directory_storage;
 
   // DEFINE IN THE CPP FILE
   // Private member about the camera zoom
@@ -204,9 +240,12 @@ private:
   // Declare the opposit search
   static const std::map< QString, QString > focus_position_hex_to_key;
 
+  // Function to add some delay if needed sometimes
+  void delay(int _delay);
+
 public slots:
   // slot to take decision about the transmitted data
-  void net_data_transmitted(QNetworkReply* _p_net_reply);
+  void net_data_transmitted();
 };
 
 #endif  // SONYSNCRX550N_H_

@@ -23,16 +23,16 @@
 
 #include "sonysncrx550n.h"
 
+#include <iostream>
+#include <sstream>
+
 int main(int argc, char *argv[])
 {
   QCoreApplication a(argc, argv);
 
   SonySNCRX550N sony_cam("192.168.0.100");
 
-  sony_cam.relative_motion(20,20,24);
-
-  sony_cam.grab_image();
+  sony_cam.spherical_acquisition(12, 8, 24, "oz-1", "f-inf", "./images");
 
   return a.exec();
 }
-
